@@ -443,11 +443,21 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
           className="mt-4 list-none rounded-2xl bg-surface-container px-4 py-1"
         >
           {list.length ? (
-            list.map((w) => {
+            list.map((w, index) => {
               const used = walletUsage(w.id);
               const editing = editingId === w.id;
               const message = rowError && rowError.id === w.id ? rowError.message : null;
+              const firstOfType = index === 0 || list[index - 1]!.type !== w.type;
               return (
+                <Fragment key={`group-${w.id}`}>
+                {firstOfType ? (
+                  <li
+                    role="presentation"
+                    className="pt-3 pb-1 text-[11px] font-bold uppercase tracking-wide text-on-surface-variant/70"
+                  >
+                    {WALLET_TYPE_LABEL[w.type]}
+                  </li>
+                ) : null}
                 <li
                   key={w.id}
                   data-testid={`fund-source-item-${w.id}`}
