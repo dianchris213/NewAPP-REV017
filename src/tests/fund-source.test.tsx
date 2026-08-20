@@ -5,7 +5,7 @@ import { AppProvider, useApp } from "@/lib/app-store";
 import { FundSourceSheet } from "@/routes/settings";
 
 function Harness() {
-  const { wallets, activity, addTransaction } = useApp();
+  const { wallets, walletActivity, addTransaction } = useApp();
   return (
     <div>
       <FundSourceSheet onClose={() => {}} />
