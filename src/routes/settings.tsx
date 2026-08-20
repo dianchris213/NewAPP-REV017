@@ -265,7 +265,12 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
   const [status, setStatus] = useState("");
 
   const list = useMemo(
-    () => [...wallets].sort((a, b) => a.name.localeCompare(b.name)),
+    () =>
+      [...wallets].sort(
+        (a, b) =>
+          WALLET_TYPES.indexOf(a.type) - WALLET_TYPES.indexOf(b.type) ||
+          a.name.localeCompare(b.name),
+      ),
     [wallets],
   );
 
