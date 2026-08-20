@@ -130,7 +130,6 @@ export function AddTransactionSheet() {
       role="dialog"
       aria-modal="true"
       aria-label="Tambah transaksi"
-      onClick={close}
     >
       <form
         ref={containerRef}
