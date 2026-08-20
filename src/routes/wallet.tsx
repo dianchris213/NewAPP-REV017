@@ -878,7 +878,9 @@ function AddWalletSheet({
             <button
               type="submit"
               data-testid="wallet-submit"
-              className="gradient-primary h-12 flex-1 rounded-full text-[13px] font-bold text-on-primary-container transition-transform active:scale-95"
+              disabled={!canSubmit}
+              aria-disabled={!canSubmit}
+              className="gradient-primary h-12 flex-1 rounded-full text-[13px] font-bold text-on-primary-container transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
             >
               Simpan Kantong
             </button>
