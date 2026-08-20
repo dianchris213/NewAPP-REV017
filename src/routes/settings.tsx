@@ -564,6 +564,7 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
                     </p>
                   ) : null}
                 </li>
+                </Fragment>
               );
             })
           ) : (
