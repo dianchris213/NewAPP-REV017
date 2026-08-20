@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AppProvider, useApp } from "@/lib/app-store";
@@ -54,6 +54,10 @@ async function addSource(user: ReturnType<typeof userEvent.setup>, name: string)
 }
 
 describe("Kartu Sumber Dana", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it("focuses the name field when the sheet opens", async () => {
     await setup();
     await waitFor(() => expect(screen.getByTestId("fund-source-name")).toHaveFocus());
