@@ -10,7 +10,7 @@ function Harness() {
     <div>
       <FundSourceSheet onClose={() => {}} />
       <span data-testid="wallet-count">{wallets.length}</span>
-      <span data-testid="activity-log">{activity.map((a) => a.title).join("|")}</span>
+      <span data-testid="activity-log">{walletActivity.map((a) => a.title).join("|")}</span>
       <button
         type="button"
         data-testid="use-first-wallet"
