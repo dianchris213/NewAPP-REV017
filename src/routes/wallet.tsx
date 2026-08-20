@@ -720,7 +720,6 @@ function AddWalletSheet({
     <SheetPortal>
     <div
       className="fixed inset-0 z-[180] flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
     >
       <div
         ref={ref}
