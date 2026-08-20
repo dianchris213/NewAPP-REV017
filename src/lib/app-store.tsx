@@ -120,9 +120,10 @@ export const WALLET_TYPE_LABEL: Record<WalletType, string> = {
 };
 
 export const WALLET_PROVIDERS: Record<WalletType, string[]> = {
-  cash: ["Dompet Fisik", "Kas Kantor", "Tabungan Rumah"],
-  bank: ["BCA", "Mandiri", "BNI", "BRI", "CIMB Niaga", "Permata"],
-  ewallet: ["GoPay", "OVO", "DANA", "ShopeePay", "LinkAja"],
+  // Empty by default: sumber dana is created by the user in Pengaturan → Sumber Dana.
+  cash: [],
+  bank: [],
+  ewallet: [],
 };
 
 const STORAGE_KEY = "tmab-state-v1";

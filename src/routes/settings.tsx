@@ -257,7 +257,6 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
   const ref = useModalA11y<HTMLDivElement>(true, onClose);
   const [name, setName] = useState("");
   const [type, setType] = useState<WalletType>("cash");
-  const [balance, setBalance] = useState("");
   const [error, setError] = useState<string | undefined>(undefined);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -283,7 +282,6 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (walletPending.add) return;
-    const numeric = Number(balance.replace(/\D/g, "")) || 0;
     const trimmed = name.trim().replace(/\s+/g, " ");
     const duplicate = wallets.some((w) => w.name.toLowerCase() === trimmed.toLowerCase());
     if (trimmed.length < 2 || trimmed.length > 24 || duplicate) {
@@ -291,14 +289,13 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
       announce(copy.invalidFundSource, false);
       return;
     }
-    const ok = await addWallet({ name: trimmed, type, balance: numeric });
+    const ok = await addWallet({ name: trimmed, type, balance: 0 });
     if (!ok) {
       setError(copy.invalidFundSource);
       announce(copy.invalidFundSource, false);
       return;
     }
     setName("");
-    setBalance("");
     setError(undefined);
     announce(copy.fundSourceAdded, true);
   };
@@ -362,6 +359,21 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
 
         <form className="mt-4 flex flex-col gap-3" onSubmit={submit} noValidate>
           <label className="flex flex-col gap-1">
+            <span className="text-meta text-on-surface-variant/80">{copy.fundSourceType}</span>
+            <select
+              value={type}
+              data-testid="fund-source-type"
+              onChange={(e) => setType(e.target.value as WalletType)}
+              className="h-12 rounded-2xl border border-outline-variant/30 bg-surface-container px-4 text-[14px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            >
+              {WALLET_TYPES.map((wt) => (
+                <option key={wt} value={wt}>
+                  {WALLET_TYPE_LABEL[wt]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
             <span className="text-meta text-on-surface-variant/80">{copy.fundSourceName}</span>
             <input
               value={name}
@@ -378,31 +390,6 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
                 setName(e.target.value);
                 if (error) setError(undefined);
               }}
-              className="h-12 rounded-2xl border border-outline-variant/30 bg-surface-container px-4 text-[14px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-meta text-on-surface-variant/80">{copy.fundSourceType}</span>
-            <select
-              value={type}
-              data-testid="fund-source-type"
-              onChange={(e) => setType(e.target.value as WalletType)}
-              className="h-12 rounded-2xl border border-outline-variant/30 bg-surface-container px-4 text-[14px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-            >
-              {WALLET_TYPES.map((wt) => (
-                <option key={wt} value={wt}>
-                  {WALLET_TYPE_LABEL[wt]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-meta text-on-surface-variant/80">{copy.fundSourceBalance}</span>
-            <input
-              inputMode="numeric"
-              data-testid="fund-source-balance"
-              value={(Number(balance.replace(/\D/g, "")) || 0).toLocaleString("id-ID")}
-              onChange={(e) => setBalance(e.target.value.replace(/\D/g, "").slice(0, 15))}
               className="h-12 rounded-2xl border border-outline-variant/30 bg-surface-container px-4 text-[14px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             />
           </label>

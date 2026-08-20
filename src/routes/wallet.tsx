@@ -688,6 +688,7 @@ function AddWalletSheet({
 }) {
   // Non-dismissible: focus trap only. Closing happens via Batal / Simpan.
   const ref = useModalA11y<HTMLDivElement>(true, () => {});
+  const { wallets } = useApp();
   const [type, setType] = useState<WalletType | null>(null);
   const [provider, setProvider] = useState("");
   const [name, setName] = useState("");
@@ -696,9 +697,21 @@ function AddWalletSheet({
 
   const trimmedName = name.trim();
   const numericBalance = Number(balance.replace(/\D/g, "")) || 0;
+  // Sumber dana options come from what the user registered in Pengaturan → Sumber Dana.
+  const providerOptions = type
+    ? Array.from(
+        new Set(
+          wallets
+            .filter((w) => w.type === type)
+            .map((w) => (w.provider?.trim() ? w.provider.trim() : w.name.trim()))
+            .filter(Boolean),
+        ),
+      )
+    : [];
+
   const canSubmit =
     !!type &&
-    !!provider &&
+    (providerOptions.length === 0 || !!provider) &&
     trimmedName.length >= 2 &&
     trimmedName.length <= 30 &&
     numericBalance > 0 &&
@@ -707,13 +720,13 @@ function AddWalletSheet({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!type) return setError("Pilih jenis kantong terlebih dahulu.");
-    if (!provider) return setError("Pilih penyedia kantong.");
+    if (providerOptions.length && !provider) return setError("Pilih sumber dana.");
     if (trimmedName.length < 2) return setError("Nama kantong minimal 2 karakter.");
     if (trimmedName.length > 30) return setError("Nama kantong maksimal 30 karakter.");
     if (numericBalance <= 0) return setError("Masukkan nominal saldo yang valid.");
     if (numericBalance > AMOUNT_MAX) return setError("Saldo awal terlalu besar.");
     setError(undefined);
-    onSubmit({ name: trimmedName, type, provider, balance: numericBalance });
+    onSubmit({ name: trimmedName, type, ...(provider ? { provider } : {}), balance: numericBalance });
   };
 
   return (
@@ -777,8 +790,8 @@ function AddWalletSheet({
             </p>
           ) : null}
 
-          {/* Sub-menu: responsive grid of provider cards (no native select). */}
-          {type ? (
+          {/* Sub-menu: user-registered sumber dana (empty until created in Pengaturan). */}
+          {type && providerOptions.length ? (
             <div className="flex flex-col gap-2">
               <span className="text-meta text-on-surface-variant/80" id="wallet-provider-label">
                 {type === "cash"
@@ -793,7 +806,7 @@ function AddWalletSheet({
                 data-testid="wallet-provider-grid"
                 className="grid grid-cols-3 gap-2 sm:grid-cols-4"
               >
-                {WALLET_PROVIDERS[type].map((p) => {
+                {providerOptions.map((p) => {
                   const active = provider === p;
                   return (
                     <button
