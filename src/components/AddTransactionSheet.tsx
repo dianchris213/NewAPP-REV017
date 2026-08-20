@@ -45,7 +45,9 @@ export function AddTransactionSheet() {
   const [submitted, setSubmitted] = useState(false);
 
   const close = useCallback(() => setAddTxOpen(false), [setAddTxOpen]);
-  const containerRef = useModalA11y<HTMLFormElement>(addTxOpen, close);
+  // Non-dismissible: keep the focus trap, but never close from Esc/backdrop.
+  const noDismiss = useCallback(() => {}, []);
+  const containerRef = useModalA11y<HTMLFormElement>(addTxOpen, noDismiss);
 
   const numeric = Number(amount.replace(/\D/g, "")) || 0;
   const trimmedNote = note.trim();
