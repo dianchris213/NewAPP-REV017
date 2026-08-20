@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AppProvider, useApp } from "@/lib/app-store";
 import { FundSourceSheet } from "@/routes/settings";
@@ -10,6 +10,7 @@ function Harness() {
     <div>
       <FundSourceSheet onClose={() => {}} />
       <span data-testid="wallet-count">{wallets.length}</span>
+      <span data-testid="wallet-id">{wallets[0]?.id ?? ""}</span>
       <span data-testid="activity-log">{walletActivity.map((a) => a.title).join("|")}</span>
       <button
         type="button"
@@ -44,10 +45,12 @@ async function setup() {
 }
 
 async function addSource(user: ReturnType<typeof userEvent.setup>, name: string) {
-  const input = screen.getByTestId("fund-source-name");
+  const input = screen.getByTestId("fund-source-name") as HTMLInputElement;
+  await waitFor(() => expect(input).toBeEnabled());
   await user.clear(input);
   await user.type(input, name);
   await user.click(screen.getByTestId("fund-source-submit"));
+  await waitFor(() => expect(screen.getByTestId("fund-source-submit")).toBeEnabled());
 }
 
 describe("Kartu Sumber Dana", () => {
@@ -67,7 +70,9 @@ describe("Kartu Sumber Dana", () => {
     const user = await setup();
     await addSource(user, "Dompet Utama");
     await waitFor(() => expect(screen.getByTestId("wallet-count")).toHaveTextContent("1"));
-    expect(screen.getByTestId("activity-log")).toHaveTextContent("Sumber Dana Dibuat");
+    await waitFor(() =>
+      expect(screen.getByTestId("activity-log")).toHaveTextContent("Sumber Dana Dibuat"),
+    );
   });
 
   it("rejects duplicate names (case-insensitive)", async () => {
@@ -84,24 +89,28 @@ describe("Kartu Sumber Dana", () => {
     await addSource(user, "Dompet Utama");
     await waitFor(() => expect(screen.getByTestId("wallet-count")).toHaveTextContent("1"));
 
-    const renameBtn = await screen.findByRole("button", { name: /Dompet Utama/i });
-    await user.click(renameBtn);
-    const editor = screen.getByRole("textbox", { name: /Dompet Utama/i });
+    const walletId = screen.getByTestId("wallet-id").textContent!;
+    await user.click(screen.getByTestId(`fund-source-rename-${walletId}`));
+    const editor = screen.getByTestId(`fund-source-rename-input-${walletId}`);
     await user.clear(editor);
     await user.type(editor, "Dompet Kedua{Enter}");
 
     await waitFor(() => expect(screen.getByText("Dompet Kedua")).toBeInTheDocument());
-    expect(screen.getByTestId("activity-log")).toHaveTextContent("Sumber Dana Diubah");
+    await waitFor(() =>
+      expect(screen.getByTestId("activity-log")).toHaveTextContent("Sumber Dana Diubah"),
+    );
   });
 
   it("deletes an unused fund source", async () => {
     const user = await setup();
     await addSource(user, "Dompet Utama");
     await waitFor(() => expect(screen.getByTestId("wallet-count")).toHaveTextContent("1"));
-    const list = screen.getByRole("list", { name: /sumber dana/i });
-    await user.click(within(list).getByRole("button", { name: /hapus/i }));
+    const walletId = screen.getByTestId("wallet-id").textContent!;
+    await user.click(screen.getByTestId(`fund-source-delete-${walletId}`));
     await waitFor(() => expect(screen.getByTestId("wallet-count")).toHaveTextContent("0"));
-    expect(screen.getByTestId("activity-log")).toHaveTextContent("Sumber Dana Dihapus");
+    await waitFor(() =>
+      expect(screen.getByTestId("activity-log")).toHaveTextContent("Sumber Dana Dihapus"),
+    );
   });
 
   it("blocks deletion while the fund source is in use", async () => {
@@ -110,8 +119,8 @@ describe("Kartu Sumber Dana", () => {
     await waitFor(() => expect(screen.getByTestId("wallet-count")).toHaveTextContent("1"));
     await user.click(screen.getByTestId("use-first-wallet"));
 
-    const list = screen.getByRole("list", { name: /sumber dana/i });
-    await user.click(within(list).getByRole("button", { name: /hapus/i }));
+    const walletId = screen.getByTestId("wallet-id").textContent!;
+    await user.click(screen.getByTestId(`fund-source-delete-${walletId}`));
     await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
     expect(screen.getByTestId("wallet-count")).toHaveTextContent("1");
   });
