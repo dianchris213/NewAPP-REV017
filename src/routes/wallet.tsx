@@ -686,24 +686,34 @@ function AddWalletSheet({
     balance: number;
   }) => void;
 }) {
-  const ref = useModalA11y<HTMLDivElement>(true, onClose);
+  // Non-dismissible: focus trap only. Closing happens via Batal / Simpan.
+  const ref = useModalA11y<HTMLDivElement>(true, () => {});
   const [type, setType] = useState<WalletType | null>(null);
   const [provider, setProvider] = useState("");
   const [name, setName] = useState("");
   const [balance, setBalance] = useState("");
   const [error, setError] = useState<string | undefined>(undefined);
 
+  const trimmedName = name.trim();
+  const numericBalance = Number(balance.replace(/\D/g, "")) || 0;
+  const canSubmit =
+    !!type &&
+    !!provider &&
+    trimmedName.length >= 2 &&
+    trimmedName.length <= 30 &&
+    numericBalance > 0 &&
+    numericBalance <= AMOUNT_MAX;
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!type) return setError("Pilih jenis kantong terlebih dahulu.");
     if (!provider) return setError("Pilih penyedia kantong.");
-    const trimmed = name.trim();
-    if (trimmed.length < 2) return setError("Nama kantong minimal 2 karakter.");
-    if (trimmed.length > 30) return setError("Nama kantong maksimal 30 karakter.");
-    const numeric = Number(balance.replace(/\D/g, "")) || 0;
-    if (numeric > AMOUNT_MAX) return setError("Saldo awal terlalu besar.");
+    if (trimmedName.length < 2) return setError("Nama kantong minimal 2 karakter.");
+    if (trimmedName.length > 30) return setError("Nama kantong maksimal 30 karakter.");
+    if (numericBalance <= 0) return setError("Masukkan nominal saldo yang valid.");
+    if (numericBalance > AMOUNT_MAX) return setError("Saldo awal terlalu besar.");
     setError(undefined);
-    onSubmit({ name: trimmed, type, provider, balance: numeric });
+    onSubmit({ name: trimmedName, type, provider, balance: numericBalance });
   };
 
   return (
